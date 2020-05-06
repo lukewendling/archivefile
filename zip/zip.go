@@ -3,7 +3,6 @@ package zip
 
 import (
 	zip_impl "archive/zip"
-	"fmt"
 	"io"
 	"os"
 	"path"
