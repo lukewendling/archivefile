@@ -3,10 +3,12 @@ package zip
 
 import (
 	zip_impl "archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -17,10 +19,16 @@ import (
 // the folder as its only item (with contents inside).
 //
 // If progress is not nil, it is called for each file added to the archive.
-func Archive(inFilePath string, writer io.Writer, progress ProgressFunc) error {
+func Archive(inFilePath string, writer io.Writer, progress ProgressFunc, ignorePattern string) error {
 	zipWriter := zip_impl.NewWriter(writer)
 
 	basePath := filepath.Dir(inFilePath)
+
+	var ignoreRegex *regexp.Regexp
+
+	if ignorePattern != "" {
+		ignoreRegex = regexp.MustCompile(ignorePattern)
+	}
 
 	err := filepath.Walk(inFilePath, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil || fileInfo.IsDir() {
@@ -33,6 +41,12 @@ func Archive(inFilePath string, writer io.Writer, progress ProgressFunc) error {
 		}
 
 		archivePath := path.Join(filepath.SplitList(relativeFilePath)...)
+		fmt.Println("archivePath", archivePath)
+		if ignoreRegex != nil && ignoreRegex.MatchString(archivePath) {
+			println("ignoring", ignorePattern)
+			return err
+			// return nil
+		}
 
 		if progress != nil {
 			progress(archivePath)
@@ -64,7 +78,7 @@ func Archive(inFilePath string, writer io.Writer, progress ProgressFunc) error {
 // ArchiveFile compresses a file/directory to a file
 //
 // See Archive() doc
-func ArchiveFile(inFilePath string, outFilePath string, progress ProgressFunc) error {
+func ArchiveFile(inFilePath string, outFilePath string, progress ProgressFunc, ignorePattern string) error {
 	outFile, err := os.Create(outFilePath)
 	if err != nil {
 		return err
@@ -73,7 +87,7 @@ func ArchiveFile(inFilePath string, outFilePath string, progress ProgressFunc) e
 		_ = outFile.Close()
 	}()
 
-	return Archive(inFilePath, outFile, progress)
+	return Archive(inFilePath, outFile, progress, ignorePattern)
 }
 
 // Unarchive decompresses a reader to a directory
