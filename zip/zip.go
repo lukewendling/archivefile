@@ -41,7 +41,7 @@ func Archive(inFilePath string, writer io.Writer, progress ProgressFunc, ignoreP
 		}
 
 		archivePath := path.Join(filepath.SplitList(relativeFilePath)...)
-		fmt.Println("archivePath", archivePath)
+		
 		if ignoreRegex != nil && ignoreRegex.MatchString(archivePath) {
 			return nil
 		}
