@@ -26,7 +26,8 @@ func Archive(inFilePath string, writer io.Writer, progress ProgressFunc, ignoreP
 	var ignoreRegex *regexp.Regexp
 
 	if ignorePattern != "" {
-		ignoreRegex = regexp.MustCompile(ignorePattern)
+		// add case insensitive flag
+		ignoreRegex = regexp.MustCompile("(?i)" + ignorePattern)
 	}
 
 	err := filepath.Walk(inFilePath, func(filePath string, fileInfo os.FileInfo, err error) error {
